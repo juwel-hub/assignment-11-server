@@ -5,13 +5,10 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors());
-// console.log(process.env.DB_USER);
-// // 1NwwmIaRSa7Kk7la
-// // deliciousFood
+app.use(express.json());
+
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.zbpbuag.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-// const uri = `mongodb+srv://${process.env.DB_PASS}:${process.env.DB_PASS}@cluster0.zbpbuag.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-console.log(uri);
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -26,6 +23,26 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const featuredCollection = client
+      .db("deliciousFoodDB")
+      .collection("featureFood");
+    const addFoodCollection = client
+      .db("deliciousFoodDB")
+      .collection("addFoods");
+
+    app.get("/featureFood", async (req, res) => {
+      const cursor = featuredCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // add food
+    app.post("/addFoods", async (req, res) => {
+      console.log(req.body);
+      const result = await addFoodCollection.insertOne(req.body);
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
