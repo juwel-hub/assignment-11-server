@@ -4,7 +4,17 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+//Must remove "/" from your production URL
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://deliciousfood-d9301.web.app",
+      "https://deliciousfood-d9301.firebaseapp.com",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -22,7 +32,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const featuredCollection = client
       .db("deliciousFoodDB")
@@ -37,6 +47,20 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/manageFood/:email", async (req, res) => {
+      const result = await addFoodCollection
+        .find({ email: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+    // get add data from database
+
+    app.get("/addFoods", async (req, res) => {
+      const cursor = addFoodCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // add food
     app.post("/addFoods", async (req, res) => {
       console.log(req.body);
@@ -44,7 +68,7 @@ async function run() {
       res.send(result);
     });
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
