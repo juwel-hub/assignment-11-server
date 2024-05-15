@@ -72,6 +72,7 @@ async function run() {
     const addFoodCollection = client
       .db("deliciousFoodDB")
       .collection("addFoods");
+    const requestFood = client.db("deliciousFoodDB").collection("requestFood");
 
     // auth related api
 
@@ -109,6 +110,21 @@ async function run() {
           donatorImage: updateFood.donatorImage,
           donatorName: updateFood.donatorName,
           email: updateFood.email,
+          foodStatus: updateFood.foodStatus,
+        },
+      };
+      const result = await addFoodCollection.updateOne(filter, food, options);
+      res.send(result);
+    });
+    app.put("/singleFoodUpdate/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateFood = req.body;
+      const food = {
+        $set: {
+          additionalNotes: updateFood.additionalNotes,
+
           foodStatus: updateFood.foodStatus,
         },
       };
@@ -157,6 +173,19 @@ async function run() {
       const result = await addFoodCollection.insertOne(req.body);
       res.send(result);
     });
+    // requested food
+    app.post("/requestedFood", async (req, res) => {
+      console.log(req.body);
+      const result = await requestFood.insertOne(req.body);
+      res.send(result);
+    });
+
+    app.get("/requestedFood", async (req, res) => {
+      const cursor = requestFood.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
